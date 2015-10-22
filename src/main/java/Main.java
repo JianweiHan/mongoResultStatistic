@@ -1,4 +1,6 @@
 import com.mongodb.*;
+import com.mongodb.client.FindIterable;
+import org.bson.Document;
 
 public class Main {
 
@@ -13,7 +15,16 @@ public class Main {
         long total = dBCollectionlocal.count();
         long acknowledged=dBCollectionlocal.find(new BasicDBObject("acknowledged", true)).count();
         long loss = acknowledged - surviors;
-        long unack = surviors-acknowledged;
+
+        long unack = 0;
+        DBCursor cur=dBCollectionlocal.find(new BasicDBObject("acknowledged", false));
+        for ( DBObject item : cur) {
+            int itemNumber=(Integer)item.get("number");
+            if(dBCollection.find(new BasicDBObject("number",itemNumber)).count()>0) {
+                unack++;
+            }
+        }
+
         double ackRate = (acknowledged*1.0)/total;
         double lssRate = (loss*1.0)/total;
         double unackSuccess = (unack*1.0)/surviors;
@@ -22,9 +33,12 @@ public class Main {
         System.out.println(acknowledged + " acknowledged");
         System.out.println(surviors + " surviors");
         System.out.println(loss+ " acknowledged writes lost");
+        System.out.println(unack + " unacknowledged writes found");
         System.out.println(Double.toString(ackRate)+ " ack rate");
         System.out.println(Double.toString(lssRate)+ " loss rate");
-        System.out.println(Double.toString(unackSuccess)+" unacknowledged but successful rate");
+        System.out.println(Double.toString(unackSuccess) + " unacknowledged but successful rate");
+
+
 
         //long acknowledged=dBCollectionlocal.find(new BasicDBObject("number", new BasicDBObject("$gt", 3))).count();
         //System.out.println("count   "+ total +" number"+ acknowledged);
