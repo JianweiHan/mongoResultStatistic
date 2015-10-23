@@ -14,11 +14,21 @@ public class Main {
         long surviors = dBCollection.count();
         long total = dBCollectionlocal.count();
         long acknowledged=dBCollectionlocal.find(new BasicDBObject("acknowledged", true)).count();
-        long loss = acknowledged - surviors;
+        //long loss = acknowledged - surviors;
+        long loss = 0;
+
+        DBCursor cur=dBCollectionlocal.find(new BasicDBObject("acknowledged", true));
+        for ( DBObject item : cur) {
+            int itemNumber=(Integer)item.get("number");
+            if(dBCollection.find(new BasicDBObject("number",itemNumber)).count()==0) {
+                loss++;
+            }
+        }
+
 
         long unack = 0;
-        DBCursor cur=dBCollectionlocal.find(new BasicDBObject("acknowledged", false));
-        for ( DBObject item : cur) {
+        DBCursor cur2=dBCollectionlocal.find(new BasicDBObject("acknowledged", false));
+        for ( DBObject item : cur2) {
             int itemNumber=(Integer)item.get("number");
             if(dBCollection.find(new BasicDBObject("number",itemNumber)).count()>0) {
                 unack++;
@@ -31,7 +41,7 @@ public class Main {
 
         System.out.println(total + " total");
         System.out.println(acknowledged + " acknowledged");
-        System.out.println(surviors + " surviors");
+        System.out.println(surviors + " survivors");
         System.out.println(loss+ " acknowledged writes lost");
         System.out.println(unack + " unacknowledged writes found");
         System.out.println(Double.toString(ackRate)+ " ack rate");
